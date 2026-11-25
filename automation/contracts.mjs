@@ -95,6 +95,7 @@ export async function validateProposal(proposal, root) {
       if (error.code !== "ENOENT") throw error;
     }
     if (
+      /\.\s*(?:skip|todo|only|skipIf|runIf)\s*\(/.test(file.content) ||
       /\b(?:it|test|describe)(?:\s*\.\s*(?:concurrent|sequential|each|fails))*\s*\.\s*(?:skip|todo|only)\b/.test(
         file.content,
       )

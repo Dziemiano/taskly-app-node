@@ -1,8 +1,8 @@
 import { readFile, lstat } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { triggerIdentity, publish } from "./github.mjs";
+import { resolveIdentity, publish } from "./github.mjs";
 const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, "utf8"));
-const identity = triggerIdentity(event);
+const identity = await resolveIdentity(event);
 const file = "agent-output/result.json";
 const stat = await lstat(file);
 if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 100_000)

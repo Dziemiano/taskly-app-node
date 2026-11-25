@@ -15,6 +15,7 @@ export async function runAgent({
   output,
 }) {
   await mkdir(output, { recursive: true });
+  await rm(path.join(output, "tests.patch"), { force: true });
   const skills = routeSkills(context.changedPaths);
   const result = {
     version: 1,

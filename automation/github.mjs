@@ -40,6 +40,39 @@ export function triggerIdentity(event) {
     runId: run.id,
   };
 }
+
+export async function resolveIdentity(event, { api = github } = {}) {
+  if (event.workflow_run?.pull_requests?.length) return triggerIdentity(event);
+  const run = event.workflow_run;
+  if (
+    !run ||
+    run.event !== "pull_request" ||
+    run.path !== ".github/workflows/ci.yml" ||
+    run.repository?.full_name !== event.repository?.full_name
+  ) {
+    throw new Error("Unsupported workflow trigger");
+  }
+  const repository = safeRepo(event.repository.full_name);
+  const head = safeSha(run.head_sha);
+  const candidates = await api(
+    `/repos/${repository}/commits/${head}/pulls?per_page=100`,
+  );
+  if (!Array.isArray(candidates) || candidates.length >= 100)
+    throw new Error("PR association budget exceeded");
+  const matching = candidates.filter(
+    (pr) =>
+      pr.state === "open" &&
+      pr.head?.sha === head &&
+      pr.base?.repo?.full_name === repository,
+  );
+  if (matching.length !== 1)
+    throw new Error("PR association missing or ambiguous");
+  return triggerIdentity({
+    ...event,
+    workflow_run: { ...run, pull_requests: [{ number: matching[0].number }] },
+  });
+}
+
 export function escapeText(text) {
   return String(text ?? "")
     .replace(/[<>`\[\]()]/g, "")

@@ -2,7 +2,7 @@ import { readFile, mkdir, writeFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { triggerIdentity, github } from "./github.mjs";
+import { resolveIdentity, github } from "./github.mjs";
 import { safeSha } from "./contracts.mjs";
 import { checked } from "./process.mjs";
 import { exportSnapshot, contextFor } from "./snapshot.mjs";
@@ -12,8 +12,9 @@ import { dockerVerify } from "./verifier.mjs";
 const trustedRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const output = path.resolve(process.env.AGENT_OUTPUT ?? "agent-output");
 await mkdir(output, { recursive: true });
+await rm(path.join(output, "tests.patch"), { force: true });
 const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, "utf8"));
-const identity = triggerIdentity(event);
+const identity = await resolveIdentity(event);
 safeSha(identity.head);
 const skipped = async (status, rationale) => {
   await writeFile(
