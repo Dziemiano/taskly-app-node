@@ -3,6 +3,12 @@
 Date: 2026-11-25. Baseline: `22be6e3bcf54fd012104fe233ef6652dd01941ff`.
 This document is an execution ledger. A checkbox means the stated artifact and evidence exist, not that a model merely proposed them. The external assignment remains outside the repository.
 
+## Current delivery status — integration checkpoint
+
+Local application tests/typechecks/coverage and 33 automation contract cases pass. All workflow YAML passes actionlint; Git diff checks pass. The full implementation and final bounded PR-association correction exist on the local implementation branch; a final documentation commit is forthcoming. Remote draft PR #1 currently contains application-test commit `aa62e02` only; it does not yet contain the complete automation.
+
+External publication prerequisite is unresolved: GitHub rejected the workflow push because the OAuth token lacks `workflow` scope. SSH authentication also failed (`publickey`). Local Docker execution is unavailable; sudo requires a password. Therefore actual Docker fixture CI, complete workflow publication and automatic PR results are **pending**, not completed. Coordinator requested the user's choice between refreshed authorization and local handoff. Live model execution remains excluded by the user's no-key choice.
+
 ## Ownership and execution protocol
 
 | Owner | Exclusive implementation area | Review responsibility |
@@ -116,7 +122,7 @@ Dependencies: phases 1 and 4. Owner: automation specialist.
 - [x] 5.4 Make existing-test changes auditable; preserve originals and detect prohibited assertion weakening/deletion where mechanically enforceable, document semantic limits.
 - [x] 5.5 Generate patch deterministically against exact PR head; no working-tree contamination across attempts.
 - [x] 5.6 Establish baseline test results before candidate tests. Existing failures produce distinct failure status and must not be disguised as generator regressions.
-- [x] 5.7 Execute candidate tests and typecheck in a fresh environment without provider key or GitHub write credentials.
+- [ ] 5.7 Execute candidate tests and typecheck in real credential-free Docker: verifier implementation and mocked boundary checks pass; actual container integration remains blocked by local Docker access / pending GitHub publication.
 - [x] 5.8 On first candidate failure, return bounded diagnostics to agent and allow one repair; rerun verification from clean head with revised proposal.
 - [x] 5.9 After final failure, expose failure evidence and withhold a patch labelled verified. Never loosen assertions to satisfy a failing implementation.
 - [x] 5.10 Add negative tests for malformed output, unsafe paths, symlinks, source edits, no-op-with-patch, timeout, existing failures and exhausted repair budget.
@@ -137,9 +143,9 @@ Dependencies: validated contracts. Owner: automation specialist; remote operatio
 - [x] 6.7 Separate publisher from code execution. Publisher parses bounded validated artifacts as data, never executes their scripts, shell expressions or Markdown commands.
 - [x] 6.8 Compare current PR head SHA with generation/verification head before publishing; stale runs must not overwrite newer results.
 - [x] 6.9 Use concurrency per PR to cancel obsolete runs; update one stable marker comment for idempotence.
-- [x] 6.10 Publish decision, reason, actual skills, attempt count, test/typecheck result, commit SHA and workflow/artifact links; escape untrusted content.
-- [x] 6.11 Expose generated test patch as artifact rather than silently pushing to contributor branch; explain how to apply it.
-- [x] 6.12 Publish missing-key, fork, no-op, baseline-failure and final-generation-failure statuses honestly.
+- [ ] 6.10 Implemented and contract-tested; live result pending workflow publication: publish decision, reason, actual skills, attempt count, test/typecheck result, commit SHA and workflow/artifact links; escape untrusted content.
+- [ ] 6.11 Artifact generation is locally contract-tested; actual GitHub artifact pending: expose generated test patch as artifact rather than silently pushing to contributor branch; explain how to apply it.
+- [ ] 6.12 Status handling is implemented and contract-tested; actual PR comment pending: publish missing-key, fork, no-op, baseline-failure and final-generation-failure statuses honestly.
 - [x] 6.13 Check workflow syntax and contract tests; inspect full YAML trust flow with architect.
 
 Implementation and local contract review complete. Live publication requires default-branch activation; actual GitHub CI fixture remains pending. Exit gate: a PR receives correct status/results; no secret-bearing job executes PR code; stale and repeated runs behave predictably.
@@ -153,7 +159,7 @@ Dependencies: implementation available. Owner: architect and coordinator; fixes:
 - [x] 7.3 Review frontend/backend changes for meaningful behavior, isolated mocks and preserved source contracts.
 - [x] 7.4 Record actionable findings with file/line, reproduction, impact and expected corrected behavior in architect report.
 - [x] 7.5 Coordinator sends findings to responsible specialist; specialist fixes and records targeted test evidence.
-- [ ] 7.6 Rerun affected tests and any required integration gate. Repeat until no unresolved acceptance-blocking defect remains.
+- [x] 7.6 Local correction checks pass: 33/33 automation cases including four PR-association cases, actionlint and diff checks. Independent coordinator rerun passed. Real Docker/GitHub integration remains a separate pending external gate.
 
 Exit: no known blocking security/correctness finding; any genuine external prerequisite is explicitly listed.
 
@@ -166,12 +172,12 @@ Dependencies: phases 2–7. Owner: documentation specialist and coordinator.
 - [x] 8.3 Include measured frontend/backend coverage changes and exact verification evidence.
 - [x] 8.4 Distinguish local contract/provider-mock runs from real model and GitHub runs.
 - [x] 8.5 Explain assumptions, current limitations, how to apply patch, and production improvements (stronger isolation, richer evals, budgets/observability, fork support if omitted).
-- [ ] 8.6 Coordinator runs integrated test/typecheck/coverage checks and reviews Git diff for secrets, assignment content, generated junk and accidental source changes.
-- [x] 8.7 Publish reviewable implementation draft PR #1 (coordinator report); pending commits/checks must remain explicit. Do not merge without authorization.
+- [x] 8.6 Coordinator runs integrated test/typecheck/coverage checks and reviews Git diff for secrets, assignment content, generated junk and accidental source changes.
+- [ ] 8.7 Draft PR #1 exists with application-test commit `aa62e02`; full implementation `71cba02` is LOCAL. GitHub workflow push rejected for missing OAuth `workflow` scope. Publish remaining implementation after authorization refresh or provide explicit local handoff. Do not merge without authorization.
 - [ ] 8.8 Create separate small feature PR against an appropriate branch carrying workflow, or document that base-workflow activation requires merge. Feature should have observable frontend/backend behavior and genuinely missing tests.
 - [ ] 8.9 Current user-approved gate: prepare full solution and launch instructions without provider key; real model execution is excluded. Run deterministic mocked-provider demo and real secretless CI; capture PR/run URLs and exact evidence. Label mock evidence. Document later real model activation and required secret.
 - [ ] 8.10 Exercise synchronize and publisher/stale-head contracts using mocks and secretless CI where feasible. Do not invent a live provider run.
-- [ ] 8.11 Update `SOLUTION.md`, reports and this ledger to match final actual evidence.
+- [x] 8.11 Ledger, architecture report and decision log record the final local checkpoint, completed association correction and unresolved external publication gates. Final publication outcome remains a separate pending gate.
 - [ ] 8.12 Report delivered paths/PRs, checks and precise remaining external steps to user. Do not email anyone or merge automatically.
 
 Exit: reviewable implementation and truthful demonstration evidence; task is not declared fully deployed if live prerequisites remain unavailable.

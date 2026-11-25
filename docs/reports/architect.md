@@ -59,3 +59,18 @@ Confirmed Docker `--user` matches host UID/GID and controller removes candidate 
 Executed root `npm test` after controller/contracts/provider/verifier test files existed: exit 0, all four test files passed. Suite covers routing/output/path invariants, actual trusted skill injection, provider schema/refusal/errors, no-op/baseline failure, patch digest, one repair/two-attempt exhaustion, unsafe proposals, Docker argument isolation and cleanup. This is deterministic contract evidence using mocked provider/verifier where appropriate, not actual Docker success. Additional GitHub/snapshot tests may be added by their owner after this pass; coordinator will record final complete CI evidence.
 
 Reviewed SOLUTION.md draft: correctly distinguishes fixture provider from live generation, measured app coverage, default-branch activation, no automatic merge and container/semantic limits. Exact GitHub CI fixture result remains pending coordinator follow-through.
+
+## Final integration checkpoint — external gates still pending
+
+Coordinator reports 29 passing automation contract cases, passing actionlint for all workflow files and passing Git diff checks. Application suites/typechecks/coverage passed as recorded in specialist reports. Local implementation commit is `71cba02`; remote draft PR #1 currently carries application-test commit `aa62e02` only. A bounded workflow-run PR-association fallback is still in progress; final affected tests must be rerun afterward.
+
+Full automation push failed because the GitHub OAuth token lacks `workflow` scope. SSH fallback failed public-key authentication. Local Docker cannot run, and sudo requires a password. Consequently real Docker fixture CI and actual SHA-aware PR publication remain unverified external integration gates. The detailed plan now states these gaps explicitly, rather than marking implementation-only checks as live delivery.
+
+Coordinator asked user whether to refresh authorization or accept local handoff; response is pending. Live model execution remains excluded by the user's no-provider-key choice. No claim of deployed/default-branch automation, completed end-to-end GitHub flow or real provider generation is warranted at this checkpoint.
+
+
+## Final local gate completed
+
+Coordinator independently reran the final correction: 33/33 automation contract cases passed, including four workflow-run PR-association cases; actionlint and Git diff checks also passed (exit 0). The bounded association fallback is complete. Local review, correction and documentation gates are complete on the local implementation branch, with a final documentation commit forthcoming. Earlier hashes in this report remain historical checkpoints.
+
+Remote workflow publication, real Docker CI fixture and automatic PR comment/artifact evidence remain pending the previously recorded authorization/runtime prerequisites. User has not replied to the authorization-refresh/local-handoff choice. No real provider execution is claimed or required in the approved no-key scope.

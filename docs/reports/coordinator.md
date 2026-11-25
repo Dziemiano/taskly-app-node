@@ -22,3 +22,11 @@ Date: 2026-11-25.
 
 ## Publication
 Implementation branch: codex/unit-test-agent. Upstream baseline: 22be6e3bcf54fd012104fe233ef6652dd01941ff. Publication and CI URLs will be appended after actual runs.
+
+## Final local acceptance
+- Root independently ran `node --test --test-isolation=none automation/test/*.test.mjs`: 33/33 pass, exit 0. Includes final PR-association fallback and the correction regressions.
+- Root ran actionlint v1.7.12 for all workflow files and `git diff --check`: exit 0.
+- Earlier frontend 37 tests and backend 86 tests/typechecks/coverage remain applicable: no production or application-test changes after their acceptance. Total accepted application and controller cases: 156.
+- Draft PR: https://github.com/Dziemiano/taskly-app-node/pull/1. Only application-test commit aa62e02 is remote. Full workflow push rejected because GitHub CLI OAuth lacks workflow scope; connector PR/tree writes also returned 403. SSH returned publickey denial. No full remote implementation or CI success claimed.
+- User was asked to refresh GitHub CLI workflow scope or accept local handoff. No answer received at this checkpoint. Provider key was explicitly declined, so live model execution is excluded from current requested verification.
+- Docker and passwordless sudo both unavailable. Container verification, GitHub artifact publication and automatic PR comment remain external integration gates.

@@ -12,7 +12,7 @@ Date: 2026-11-25. Ownership: SOLUTION.md and this report only.
 
 ## Draft evidence
 
-Frontend results were transcribed from docs/reports/frontend.md: 37 tests, passing typecheck; line coverage 47.68% to 67.54%. Backend results from docs/reports/backend.md: 86 tests, passing typecheck; line coverage 33.02% to 97.24%. Automation evidence remains to be reconciled after implementation.
+Frontend results were transcribed from docs/reports/frontend.md: 37 tests, passing typecheck; line coverage 47.68% to 67.54%. Backend results from docs/reports/backend.md: 86 tests, passing typecheck; line coverage 33.02% to 97.24%. Final automation evidence supplied by coordinator: 33/33 contract cases pass; combined with 37 frontend and 86 backend cases, 156 application/contract cases pass. Actionlint and diff checks pass. Docker/CI remain unverified due environment/publication prerequisites.
 
 ## Verification
 
@@ -30,3 +30,19 @@ Coordinator explicitly assigned scratch feature preparation after initial propos
 - First scratch creation command failed before execution because its requested working directory did not exist; corrected by creating scratch from repository directory before starting tests. No test result was claimed from the failed command.
 
 The scratch feature and proposal have been shared with coordinator and automation specialist for the separate PR/demo. No remote writes performed.
+
+## Final reconciliation pass
+
+Read actual controller, run/demo entrypoints, verifier, provider, contracts, publisher and CI/agent workflows. Updated SOLUTION.md with exact npm commands, skills, bounded execution values, output/artifact paths, append-only policy, SHA-bound patch application and GitHub secret/variable setup. Clarified that ordinary secretless CI executes on GitHub runners while privileged agent verification uses Docker. Added implementation PR #1 link. Local Docker result is explicitly baseline_failed, and real-model execution is not claimed. GitHub container result awaits coordinator evidence.
+
+Documentation validation: `git diff --check -- SOLUTION.md docs/reports/documentation.md` passed before final reconciliation; rerun after this pass. No remote writes.
+
+## Publication correction
+
+Coordinator corrected remote state: pushing commit 71cba02 containing workflows was rejected because local OAuth credential lacks workflow scope; existing SSH authentication also failed. Draft PR #1 currently contains application-test commit aa62e02 only. SOLUTION.md now explicitly states the full implementation is local, no GitHub/container run is claimed, and authenticated workflow publication plus default-branch activation are prerequisites. Added the owner's interactive `gh auth refresh -h github.com -s workflow` recovery step and role-documentation pointers. Did not claim rejected commit is remote.
+
+Final documentation whitespace check passed, exit 0.
+
+## Final handoff evidence
+
+Coordinator supplied final local root contract run: 33/33 passing cases, with current PR-association resolver fallback included; 37 frontend + 86 backend + 33 automation = 156 application/contract cases. Actionlint and diff checks pass. SOLUTION.md now includes this exact evidence, local demonstration branch `codex/demo-overdue-filter`, planned sibling `taskly-solution.bundle`, publication/auth commands and demo PR creation against the implementation branch. It continues to state that no remote demo or successful Docker/GitHub run exists yet. No application suites were rerun for documentation changes.
