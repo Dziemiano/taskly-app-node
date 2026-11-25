@@ -1,0 +1,13 @@
+{
+  "name": "taskly-test-agent",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "test": "node --test automation/test/*.test.mjs",
+    "agent:demo": "node automation/demo.mjs",
+    "agent:run": "node automation/run.mjs"
+  }
+}

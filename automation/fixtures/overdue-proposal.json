@@ -1,0 +1,14 @@
+{
+  "decision": "generate",
+  "rationale": "The new overdue filter changes observable selection behavior and introduces a UI option. Cover local-day boundaries, completed/missing-date exclusions, search/sort composition and UI change forwarding. This is a deterministic fixture response, not a live model output.",
+  "files": [
+    {
+      "path": "frontend/src/features/todos/utils/overdue-filter.test.ts",
+      "content": "import { afterEach, expect, it, vi } from 'vitest'\nimport { selectTodos } from './todos'\nimport type { Todo } from '../types'\n\nafterEach(() => vi.useRealTimers())\n\nit('selects only unfinished tasks due before the current local calendar day', () => {\n  vi.useFakeTimers()\n  vi.setSystemTime(new Date(2026, 10, 25, 12))\n  const base: Todo = {\n    id: 1, title: 'Overdue API task', description: '', priority: 'medium',\n    completed: false, due_date: '2026-11-24',\n    created_at: '2026-11-01T12:00:00Z', updated_at: '2026-11-01T12:00:00Z',\n  }\n  const todos: Todo[] = [\n    base,\n    { ...base, id: 2, completed: true },\n    { ...base, id: 3, due_date: '2026-11-25' },\n    { ...base, id: 4, due_date: '2026-11-26' },\n    { ...base, id: 5, due_date: null },\n  ]\n  expect(selectTodos(todos, 'overdue', '', 'newest')).toEqual([base])\n  expect(todos).toHaveLength(5)\n})\n\nit('combines overdue status with case-insensitive search and priority sorting', () => {\n  vi.useFakeTimers()\n  vi.setSystemTime(new Date(2026, 10, 25, 12))\n  const low: Todo = {\n    id: 1, title: 'API cleanup', description: '', priority: 'low',\n    completed: false, due_date: '2026-11-24',\n    created_at: '2026-11-01T12:00:00Z', updated_at: '2026-11-01T12:00:00Z',\n  }\n  const high: Todo = { ...low, id: 2, title: 'Release', description: 'API documentation', priority: 'high' }\n  const unrelated: Todo = { ...low, id: 3, title: 'Shopping' }\n  const todos = [low, unrelated, high]\n  expect(selectTodos(todos, 'overdue', ' api ', 'priority')).toEqual([high, low])\n  expect(todos).toEqual([low, unrelated, high])\n})\n"
+    },
+    {
+      "path": "frontend/src/features/todos/components/OverdueFilter.test.tsx",
+      "content": "import { render, screen } from '@testing-library/react'\nimport userEvent from '@testing-library/user-event'\nimport { expect, it, vi } from 'vitest'\nimport { TodoFilters } from './TodoFilters'\n\nvi.mock('../../../design-system', () => import('../../../design-system/mocks'))\n\nit('offers the overdue filter and forwards its selected value', async () => {\n  const onFilterChange = vi.fn()\n  render(<TodoFilters filter=\"all\" search=\"\" sort=\"newest\" onFilterChange={onFilterChange} onSearchChange={vi.fn()} onSortChange={vi.fn()} />)\n  const user = userEvent.setup()\n  await user.selectOptions(screen.getByLabelText('Status'), 'overdue')\n  expect(screen.getByRole('option', { name: 'Overdue' })).toBeInTheDocument()\n  expect(onFilterChange).toHaveBeenCalledWith('overdue')\n})\n"
+    }
+  ]
+}

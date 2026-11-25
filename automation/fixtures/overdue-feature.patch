@@ -1,0 +1,34 @@
+--- a/frontend/src/features/todos/types.ts
++++ b/frontend/src/features/todos/types.ts
+@@ -11,5 +11,5 @@
+   created_at: string
+   updated_at: string
+ }
+-export type Filter = 'all' | 'active' | 'completed'
++export type Filter = 'all' | 'active' | 'completed' | 'overdue'
+ export type Sort = 'newest' | 'priority' | 'due'
+--- a/frontend/src/features/todos/components/TodoFilters.tsx
++++ b/frontend/src/features/todos/components/TodoFilters.tsx
+@@ -34,6 +34,7 @@
+           { value: 'all', label: 'All statuses' },
+           { value: 'active', label: 'To do' },
+           { value: 'completed', label: 'Completed' },
++          { value: 'overdue', label: 'Overdue' },
+         ]}
+       />
+       <Select
+--- a/frontend/src/features/todos/utils/todos.ts
++++ b/frontend/src/features/todos/utils/todos.ts
+@@ -34,7 +34,11 @@
+     .filter((todo) => {
+       const statusMatches =
+         filter === 'all' ||
+-        (filter === 'completed' ? todo.completed : !todo.completed)
++        (filter === 'overdue'
++          ? isOverdue(todo)
++          : filter === 'completed'
++            ? todo.completed
++            : !todo.completed)
+       return (
+         statusMatches &&
+         `${todo.title} ${todo.description}`
