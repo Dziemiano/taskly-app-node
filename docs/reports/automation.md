@@ -38,3 +38,18 @@ Additional preflight `sudo -n docker version` with approved escalation returned 
 
 ## Final association correction
 Workflow-run PR association can be absent, particularly for fork events. Shared `resolveIdentity` now performs at most one commit-to-PR API page (100 results), requires exactly one open PR with the exact event SHA and expected base repository, and otherwise fails closed. Both generator and publisher use it. Independent tests cover present association, exact fallback selection, absent/ambiguous/stale/closed/wrong-repository candidates, invalid identity and API budget. Final local suite: **33 scenarios pass, 0 fail**, with actionlint and diff whitespace checks still exit 0. No additional provider or GitHub mutation occurred during these tests.
+
+## Real GitHub/container verification — external gate resolved
+After the user refreshed OAuth workflow scope, coordinator published the workflow branches. Read-only inspection confirms [CI run 45692977519](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692977519) completed successfully, including automation job `139482979711` and both frontend/backend application jobs. The fixture step executed real Docker installation, full coverage suites and TypeScript checks.
+
+Parsed controller output from the actual job logs:
+- Provider: `fixture` (no live model request).
+- Snapshot checkout SHA: `28740097eccced3bcd1bd9693b7850aa4415b1c0` (PR merge checkout); workflow head SHA: `864fe33dfdeeb867104cba1ee4fd54937a99c020`.
+- Loaded skills: `analyze-test-changes`, `frontend-unit-tests`.
+- Baseline: frontend 37 tests and backend 86 tests passed; install/test phases both exit 0.
+- Attempt 1: install exit 0; tests exit 1, observing the intentional fixture assertion failure (40 frontend tests passed, 1 failed).
+- Attempt 2: install/test exit 0; frontend 40 and backend 86 tests passed. Controller status `verified`.
+- Accepted test patch SHA-256: `ec62e4ee0e0e58d6cebfe23f770f1a7f456415bd138d65541546240973d135e6`.
+- [Fixture artifact 15059916505](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692977519/artifacts/15059916505) contains the report and accepted test patch.
+
+This supersedes the earlier remote-publication/container evidence blocker. Local Docker remains inaccessible, but the intended GitHub verifier environment is now proven. Prisma emitted an OpenSSL detection warning in the slim image; generation and all checks nevertheless succeeded. No source or verification weakening was needed. Live provider execution and trusted default-branch workflow activation remain separate prerequisites described in SOLUTION.md.

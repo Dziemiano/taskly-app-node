@@ -37,3 +37,11 @@ Implementation branch: codex/unit-test-agent. Upstream baseline: 22be6e3bcf54fd0
 - Complete two-branch bundle: ../taskly-solution.bundle. `git bundle verify` passed and confirmed complete history plus both refs.
 - PR #1 description updated to explain the verified results and publication blocker. The PR remains draft because its remote branch lacks the unpublished automation commits.
 - After workflow-scope authorization is refreshed, push the implementation and demo branches, review CI fixture results, fix any actual container failures, and open the demo PR against the implementation branch. Default-branch agent activation remains a separate merge/review step.
+
+
+## Publication completion — 2026-11-26
+- User confirmed refreshed authorization; verified OAuth workflow scope and pushed implementation f1dd2d3 plus demo 864fe33.
+- Implementation PR #1 and demonstration PR #2 are published. CI runs 45692900997 and45692977519 completed successfully, including real Docker fixture baseline, intentional first failure, second-attempt success and artifact upload.
+- Actual fixture evidence: provider fixture, baseline pass, attempt 1 install 0 / test 1, attempt 2 install 0 / test 0, frontend 40 / backend 86 plus typechecks. Patch digest ec62e4ee0e0e58d6cebfe23f770f1a7f456415bd138d65541546240973d135e6. No live model request.
+- Reviewed and integrated specialist documentation updates after interruption. Implementation code unchanged from successful runs.
+- Default-branch activation requires merge approval under docs/agents/coordinator.md; publication of the privileged automatic PR comment remains pending that activation.

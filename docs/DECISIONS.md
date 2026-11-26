@@ -27,8 +27,18 @@ Generated changes to existing test files must preserve the exact original prefix
 ## D009 — Publisher review corrections
 Independent review found first-page comment lookup could create duplicates after 100 comments. Publisher now paginates with a finite 1000-comment budget and fails explicitly at the cap. A verified status requires test patch identity and SHA-256 metadata; nonverified statuses cannot carry a verified patch. Publication entrypoint validates bounded regular artifact files and patch digest, and checks current open PR head before comment mutation.
 
-## D010 — Publication and container evidence remain external prerequisites
+## D010 — Historical publication blocker and container evidence prerequisite
 Integration checkpoint: local implementation commit `71cba02` exists, and remote draft PR #1 contains preceding application-test commit `aa62e02`. GitHub rejected the workflow push because the OAuth token lacks `workflow` scope; SSH fallback failed public-key authentication. Local Docker socket is inaccessible and sudo requires a password. Coordinator requested user direction on refreshed GitHub authorization or local handoff. No complete workflow publication, real container CI result or automatic PR comment is claimed. These constraints do not invalidate passing local tests, but keep the corresponding integration gates pending. Live model execution remains deliberately outside the user-approved no-key scope.
 
-## D011 — Final local evidence and pending small reliability correction
+## D011 — Final local evidence and completed reliability correction
 Coordinator independently reran 33/33 passing automation contract cases, including four bounded PR-association cases, plus actionlint for all workflows and diff checks (all exit 0). Frontend/backend test and coverage evidence remains unchanged. The bounded PR-association fallback for workflow_run events that omit pull_requests is complete and verified. The final implementation is on the local implementation branch; earlier commit identifiers describe historical checkpoints, not the forthcoming final documentation commit. Remote publication and real Docker/GitHub evidence remain pending; no authorization reply has arrived.
+
+
+## D012 — Authorization refreshed; publication resumed
+User refreshed GitHub workflow authorization. Coordinator successfully pushed both implementation and demo branches, resolving D010's OAuth publication blocker. Real secretless GitHub CI run [45692900997](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692900997) is underway; frontend test/typecheck steps passed, final backend/container fixture results remain pending. A demo PR is being created. This publication does not authorize merging or activate the privileged default-branch workflow by itself. No live provider key is requested or used.
+
+
+## D013 — Real GitHub container verification completed
+Implementation PR #1 [run 45692900997](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692900997) passed all three jobs. Coordinator parsed the actual fixture result: tested merge `baa1be1bc8bb7053621ab833e3b4918e5a166ddd`, reported provider `fixture`, status `verified`, passing baseline, attempt 1 install exit 0/test exit 1, attempt 2 install exit 0/test exit 0. Artifact [15060230453](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692900997/artifacts/15060230453) contains verified patch SHA-256 `ec62e4ee0e0e58d6cebfe23f770f1a7f456415bd138d65541546240973d135e6`. This proves actual container installation, test failure feedback and repair verification, using deterministic provider responses.
+
+Demo [PR #2](https://github.com/Dziemiano/taskly-app-node/pull/2) and [run 45692977519](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692977519) also passed. Actual Docker/CI/artifact gates are complete. Automatic comment publication remains unactivated until trusted workflow_run exists on default branch; no merge is authorized. Live LLM execution remains outside the user-approved no-key scope.
