@@ -93,6 +93,16 @@ test("container test boundary is read-only with limited writable overlays and no
   ])
     assert.ok(args.includes(required));
   assert.ok(args.some((x) => x.includes("dst=/work/.agent-results")));
+  assert.ok(
+    args
+      .at(-1)
+      .includes("--coverage.reportsDirectory=/work/.agent-results/coverage-$d"),
+  );
+  assert.equal(
+    args.some((x) => /dst=\/work\/(frontend|backend)\/coverage(?:,|$)/.test(x)),
+    false,
+  );
+
   assert.equal(
     args.some((x) =>
       /OPENAI|GITHUB_TOKEN|docker.sock|--privileged|--network=host/.test(x),

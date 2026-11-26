@@ -25,8 +25,6 @@ export function clipDiagnostics(value, budget = LIMITS.logBytes) {
 const writableDirectories = [
   "frontend/node_modules",
   "backend/node_modules",
-  "frontend/coverage",
-  "backend/coverage",
   ".agent-results",
 ];
 const ignored = (relative) =>
@@ -84,7 +82,7 @@ export function dockerArguments(root, name, phase) {
   const script =
     phase === "install"
       ? "for d in frontend backend; do cd /work/$d && npm ci --no-audit --no-fund || exit $?; done"
-      : "for d in frontend backend; do cd /work/$d && ./node_modules/.bin/vitest run --coverage --reporter=default --reporter=json --outputFile=/work/.agent-results/$d.json --passWithNoTests=false && ./node_modules/.bin/tsc --noEmit || exit $?; done";
+      : "for d in frontend backend; do cd /work/$d && ./node_modules/.bin/vitest run --coverage --coverage.reportsDirectory=/work/.agent-results/coverage-$d --reporter=default --reporter=json --outputFile=/work/.agent-results/$d.json --passWithNoTests=false && ./node_modules/.bin/tsc --noEmit || exit $?; done";
   return [
     "run",
     "--rm",

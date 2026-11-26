@@ -59,3 +59,9 @@ Reviewed `workflow.mjs`, `report.mjs`, `github.mjs`, `run.mjs`, `publish.mjs` an
 One additional P2 reliability issue was reproduced after this review: a fake agent writes `tests.patch` and then throws (representing a possible post-write cleanup failure). `runWorkflow` produced status `error`, but left the patch; `readReport` then rejected it as `Unverified patch artifact`, preventing publication of the associated error. Coordinator was asked to clear the patch in every nonverified workflow outcome and add a regression. Reproduction used only a temporary output directory and fake API/agent; no remote write or actual model request.
 
 The integrated local root suite was rerun after owned changes: 62/62 automation contracts passed (exit 0). The coordinator is responsible for the subsequent regression, final total and real CI evidence. No other integration blocker was found in the reviewed root-owned modules.
+
+## Real CI correction — coverage cleanup under read-only source
+
+The coordinator inspected actual run `45896026451`, automation job `140170007405`: installation succeeded, but Vitest failed with `EROFS` while attempting to remove `/work/frontend/coverage`. The first read-only design mounted the coverage directory itself as an overlay; its parent was read-only and the mountpoint could not be removed by Vitest's normal cleanup.
+
+Corrected the test command to force coverage output into `/work/.agent-results/coverage-$d`, a removable child of the writable report directory. Removed the unnecessary dedicated frontend/backend coverage mounts. Source remains read-only and Vitest cleanup remains enabled. The Docker argument regression asserts the new child path and absence of coverage mountpoints. All 13 owned tests pass again; a real local targeted Vitest invocation confirms the coverage CLI override and JSON output work. This local invocation is not a substitute for the corrected Docker CI rerun.
