@@ -1,0 +1,64 @@
+name: CI
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, "codex/**"]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        directory: [frontend, backend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.directory }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22.16.0"
+      - run: npm ci --no-audit --no-fund
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+      - run: npm audit --audit-level=moderate
+      - run: npm run typecheck
+      - run: npm run test:coverage
+      - run: npm run build
+      - name: Verify Storybook dependency compatibility
+        if: matrix.directory == 'frontend'
+        run: npm run build-storybook
+        env:
+          STORYBOOK_DISABLE_TELEMETRY: "1"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: coverage-${{ matrix.directory }}
+          path: ${{ matrix.directory }}/coverage
+          retention-days: 7
+  automation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.16.0"
+      - run: npm test
+      - name: Fixture provider with real isolated verification and repair
+        run: npm run agent:demo
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: fixture-agent-demo
+          path: agent-demo-output
+          retention-days: 7

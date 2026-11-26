@@ -21,3 +21,7 @@ coverage/
 
 # macOS
 .DS_Store
+
+# Ephemeral agent verification outputs
+agent-output/
+agent-demo-output/

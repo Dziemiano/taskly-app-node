@@ -32,3 +32,48 @@ it.each([{ title: '  ' }, { title: 'x'.repeat(121) }, { title: 'Task', priority:
     expect(repository.create).not.toHaveBeenCalled();
   },
 );
+
+it('returns a task by numeric ID', async () => {
+  const { app, repository } = setup();
+  repository.get.mockResolvedValue(todo);
+  const response = await request(app).get('/api/todos/1');
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual(todo);
+  expect(repository.get).toHaveBeenCalledWith(1);
+});
+it('updates a task using validated, trimmed fields', async () => {
+  const { app, repository } = setup();
+  repository.update.mockResolvedValue({ ...todo, title: 'Updated' });
+  const response = await request(app).patch('/api/todos/1').send({ title: '  Updated  ' });
+  expect(response.status).toBe(200);
+  expect(response.body.title).toBe('Updated');
+  expect(repository.update).toHaveBeenCalledWith(1, { title: 'Updated' });
+});
+it('deletes an existing task without a response body', async () => {
+  const { app, repository } = setup();
+  repository.delete.mockResolvedValue(true);
+  const response = await request(app).delete('/api/todos/1');
+  expect(response.status).toBe(204);
+  expect(response.text).toBe('');
+  expect(repository.delete).toHaveBeenCalledWith(1);
+});
+it.each(['get', 'patch', 'delete'] as const)('returns 404 for a missing task on %s', async (method) => {
+  const { app, repository } = setup();
+  repository.get.mockResolvedValue(null);
+  repository.update.mockResolvedValue(null);
+  repository.delete.mockResolvedValue(false);
+  const response = await request(app)[method]('/api/todos/99').send(method === 'patch' ? { completed: true } : undefined);
+  expect(response.status).toBe(404);
+  expect(response.body).toEqual({ detail: 'Task not found.' });
+});
+it.each(['zero', '0', '-1', '1.5', '9007199254740992'])('rejects invalid ID %s before repository access', async (id) => {
+  const { app, repository } = setup();
+  const response = await request(app).get(`/api/todos/${id}`);
+  expect(response.status).toBe(422);
+  expect(repository.get).not.toHaveBeenCalled();
+});
+it.each([{}, { title: ' ' }, { unknown: true }, { completed: 'yes' }])('rejects invalid update %j before repository access', async (payload) => {
+  const { app, repository } = setup();
+  expect((await request(app).patch('/api/todos/1').send(payload)).status).toBe(422);
+  expect(repository.update).not.toHaveBeenCalled();
+});
