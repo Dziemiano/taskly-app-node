@@ -193,5 +193,7 @@ Exit: reviewable implementation and truthful demonstration evidence; task is not
 - [x] 9.5 Patch known vulnerable dependencies; actual npm audit reports zero frontend/backend vulnerabilities. Verify both production builds, Storybook build, Prisma generation and typechecks.
 - [x] 9.6 Add real Docker audit probes for excluded tests and setup mutation to the existing keyless demo; unit contracts verify required rejection reasons.
 - [x] 9.7 Local integrated automation suite 63/63, actionlint and diff checks pass. Independent review and reports retained.
-- [ ] 9.8 Publish all audited changes and run clean GitHub CI on implementation and updated demonstration branches. Require passing positive repair and both negative Docker probes; record exact run/artifact URLs.
-- [ ] 9.9 Update SOLUTION.md, audit report and bundle with actual final evidence and remaining activation/live-model boundaries.
+- [x] 9.8 Publish all audited changes and run clean GitHub CI on implementation and updated demonstration branches. Require passing positive repair and both negative Docker probes; record exact run/artifact URLs.
+- [x] 9.9 Update SOLUTION.md, audit report and bundle with actual final evidence and remaining activation/live-model boundaries.
+
+Audit acceptance: implementation CI 45896269582 and demonstration CI 45896267751 passed, including clean installs/audits/builds, positive repair and both negative Docker probes. Exact evidence and residual boundaries are in docs/AUDIT.md.

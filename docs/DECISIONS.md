@@ -51,3 +51,7 @@ A passing existing suite did not prove a proposed test was discovered; setup cou
 
 ## D016 — Patch, repair, publication and dependency reliability
 Repair receives the bounded previous proposal; Git blob export preserves bytes/modes and trusted attributes prevent conversion/clean-filter effects. Streaming provider responses are capped before allocation. Publication validates run-bound artifacts and execution evidence, rechecks current head after pagination and prevents an older source run replacing newer same-head evidence. Associated setup/API failures persist an error report; unassociated runs fail closed with a diagnostic artifact. Inherited known dependency vulnerabilities are patched with verified version sets and two scoped overrides documented in audit-dependencies.md. CI now gates dependency audits, application builds and Storybook compatibility in addition to tests/typechecks and real Docker verification.
+
+
+## D017 — Audit integration accepted after real negative probes
+Real runs 45896269582 and 45896267751 passed the audited application/dependency/build gates and the positive repair plus negative exclusion/setup-mutation probes. The initial readonly-coverage failure was reproduced in CI and corrected by redirecting reports into a writable child directory; coverage cleanup and readonly source remained enforced. Fixture metadata is explicitly interpreted as a merge checkout plus a versioned synthetic feature patch, not a live exact-head model run. See docs/AUDIT.md for artifact identities and final limitations.

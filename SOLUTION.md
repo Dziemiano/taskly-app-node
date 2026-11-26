@@ -77,7 +77,7 @@ The complete implementation is published in [PR #1](https://github.com/Dziemiano
 4. `CI` runs on PR open, synchronization and reopening. Its completion triggers **Unit Test Agent**. Failed CI, forks and missing key/model receive explicit skip statuses. With prerequisites met, the controller verifies baseline, generates or declines tests, and allows one repair.
 5. The separate publisher rechecks the current open PR head, updates one bot-owned marker comment, and links the `agent-results` artifact for that workflow run. Reports include decision/rationale, loaded skills, attempts and actual verification results. Obsolete runs cannot overwrite a newer head's comment. When a workflow event omits its PR association, the controller resolves the exact head through GitHub and rejects missing or ambiguous matches.
 
-Download `agent-results`, inspect `result.json`, and apply a verified `tests.patch` against its exact recorded PR head:
+For live-agent `agent-results`, inspect `result.json` and apply a verified `tests.patch` against its exact recorded PR head. The separate fixture demo can synthesize the overdue source patch; apply its test patch on the demonstration feature branch, whose source already includes that feature, rather than treating its merge-checkout identity as live-agent output:
 
 ```sh
 git switch <your-pr-branch>
@@ -116,4 +116,4 @@ The complete [audit](docs/AUDIT.md) reproduced and corrected false verification 
 
 Additional frontend tests exercise full feature flows and boundary cases; backend tests exercise each repository-operation failure response. Dependency audits now report **zero known vulnerabilities in both manifests/lockfiles**. Patch upgrades and two scoped transitive overrides were checked by frontend/backend production builds, Storybook build and Prisma generation; see [dependency report](docs/reports/audit-dependencies.md). CI enforces `npm audit --audit-level=moderate` and builds. These advisories are time-sensitive; a future audit may report new issues.
 
-The earlier CI links above document the original delivery. The audit updates require their own real-container gate; final run and artifact evidence is recorded in docs/AUDIT.md after execution. No live model execution or automatic default-branch comment is implied by fixture success.
+The earlier CI links above document the original delivery. The audit updates passed [implementation CI 45896269582](https://github.com/Dziemiano/taskly-app-node/actions/runs/45896269582) and [demonstration CI 45896267751](https://github.com/Dziemiano/taskly-app-node/actions/runs/45896267751), including both negative Docker probes. Exact run and artifact evidence is recorded in [docs/AUDIT.md](docs/AUDIT.md). No live model execution or automatic default-branch comment is implied by fixture success.
