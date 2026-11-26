@@ -1,4 +1,4 @@
-import { safeRepo, safeSha } from "./contracts.mjs";
+import { safeRepo, safeSha, testPath } from "./contracts.mjs";
 export async function github(
   route,
   {
@@ -6,18 +6,38 @@ export async function github(
     method = "GET",
     body,
     fetchImpl = fetch,
+    delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   } = {},
 ) {
-  const response = await fetchImpl(`https://api.github.com${route}`, {
-    method,
-    headers: {
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(30_000),
-  });
+  const request = () =>
+    fetchImpl(`https://api.github.com${route}`, {
+      method,
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(30_000),
+    });
+  // Only reads are retried: repeating an uncertain POST could duplicate a comment.
+  let response;
+  for (let attempt = 0; attempt < (method === "GET" ? 2 : 1); attempt++) {
+    try {
+      response = await request();
+      if (
+        method !== "GET" ||
+        attempt > 0 ||
+        (response.status !== 429 && response.status < 500)
+      )
+        break;
+      await response.body?.cancel();
+    } catch (error) {
+      if (method !== "GET" || attempt > 0) throw error;
+    }
+    await delay(250);
+  }
   if (!response.ok) throw new Error(`GitHub HTTP ${response.status}`);
   return response.json();
 }
@@ -31,8 +51,15 @@ export function triggerIdentity(event) {
   )
     throw new Error("Unsupported workflow trigger");
   const pr = run.pull_requests?.[0];
-  if (!pr || !Number.isSafeInteger(pr.number) || pr.number < 1)
+  if (
+    run.pull_requests?.length !== 1 ||
+    !pr ||
+    !Number.isSafeInteger(pr.number) ||
+    pr.number < 1
+  )
     throw new Error("No associated PR");
+  if (!Number.isSafeInteger(run.id) || run.id < 1)
+    throw new Error("Invalid workflow run identity");
   return {
     repository: safeRepo(event.repository.full_name),
     pr: pr.number,
@@ -80,7 +107,7 @@ export function escapeText(text) {
     .slice(0, 4000);
 }
 export function commentBody(report, runUrl) {
-  return `<!-- taskly-unit-test-agent -->\n## Taskly Unit Test Agent\n\nCommit: \`${report.head}\`\n\nStatus: **${report.status}**\n\n${escapeText(report.rationale)}\n\nSkills loaded: ${report.skills.map(escapeText).join(", ") || "none"}\n\nGeneration attempts: ${report.attempts.length}. Baseline: ${report.baseline ? (report.baseline.ok ? "passed" : "failed") : "not run"}.\n\n${report.attempts.map((x) => `Attempt ${x.attempt}: ${x.validation}; verification ${x.verification ? (x.verification.ok ? "passed" : "failed") : "not run"}`).join("\n\n")}\n\n${report.patch ? "Verified test patch is in the agent-results artifact. Review before applying with git apply tests.patch." : "No verified patch published."}\n\n[Workflow and artifacts](${runUrl})\n`;
+  return `<!-- taskly-unit-test-agent -->\n<!-- taskly-source-run:${report.runId} -->\n## Taskly Unit Test Agent\n\nCommit: \`${report.head}\`\n\nStatus: **${report.status}**\n\n${escapeText(report.rationale)}\n\nSkills loaded: ${report.skills.map(escapeText).join(", ") || "none"}\n\nGeneration attempts: ${report.attempts.length}. Baseline: ${report.baseline ? (report.baseline.ok ? "passed" : "failed") : "not run"}.\n\n${report.attempts.map((x) => `Attempt ${x.attempt}: ${x.validation}; verification ${x.verification ? (x.verification.ok ? "passed" : "failed") : "not run"}`).join("\n\n")}\n\n${report.patch ? "Verified test patch is in the agent-results artifact. Review before applying with git apply tests.patch." : "No verified patch published."}\n\n[Workflow and artifacts](${runUrl})\n`;
 }
 export async function publish(report, identity, { api = github, runUrl } = {}) {
   if (
@@ -88,6 +115,11 @@ export async function publish(report, identity, { api = github, runUrl } = {}) {
     report.repository !== identity.repository ||
     report.pr !== identity.pr ||
     report.head !== identity.head ||
+    report.runId !== identity.runId ||
+    !Number.isSafeInteger(report.runId) ||
+    report.runId < 1 ||
+    typeof report.rationale !== "string" ||
+    report.rationale.length > 4000 ||
     ![
       "skipped_missing_key",
       "skipped_fork",
@@ -128,6 +160,39 @@ export async function publish(report, identity, { api = github, runUrl } = {}) {
   ) {
     throw new Error("Verified report lacks successful verifier evidence");
   }
+  if (report.status === "verified") {
+    const last = report.attempts.at(-1);
+    const complete = (verification) =>
+      verification?.ok === true &&
+      verification.integrity?.ok === true &&
+      Array.isArray(verification.steps) &&
+      verification.steps.length >= 2 &&
+      verification.steps.every(
+        (step) => Number.isInteger(step.code) && step.code === 0,
+      ) &&
+      ["install", "test"].every((phase) =>
+        verification.steps.some((step) => step.phase === phase),
+      );
+    if (
+      !complete(report.baseline) ||
+      !complete(last.verification) ||
+      last.validation !== "accepted" ||
+      !Array.isArray(last.files) ||
+      !last.files.length ||
+      last.files.some((file) => !testPath(file)) ||
+      !Array.isArray(last.verification.executedTests) ||
+      !last.files.every((file) =>
+        last.verification.executedTests.some(
+          (item) =>
+            item.path === file &&
+            Number.isSafeInteger(item.passed) &&
+            item.passed > 0,
+        ),
+      )
+    ) {
+      throw new Error("Verified report lacks execution/integrity evidence");
+    }
+  }
   safeSha(report.head);
   safeRepo(report.repository);
   const current = await api(
@@ -149,6 +214,17 @@ export async function publish(report, identity, { api = github, runUrl } = {}) {
     if (page === 10) throw new Error("Comment pagination budget exceeded");
   }
   const body = commentBody(report, runUrl);
+  const previousRun = previous?.body?.match(
+    /<!-- taskly-source-run:(\d+) -->/,
+  )?.[1];
+  if (previousRun && BigInt(previousRun) > BigInt(report.runId))
+    return { status: "stale" };
+  // Pagination can span many requests; the PR may change while comments are read.
+  const latest = await api(
+    `/repos/${identity.repository}/pulls/${identity.pr}`,
+  );
+  if (latest.state !== "open" || latest.head.sha !== report.head)
+    return { status: "stale" };
   if (previous)
     await api(`/repos/${identity.repository}/issues/comments/${previous.id}`, {
       method: "PATCH",

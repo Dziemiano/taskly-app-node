@@ -74,3 +74,19 @@ Coordinator asked user whether to refresh authorization or accept local handoff;
 Coordinator independently reran the final correction: 33/33 automation contract cases passed, including four workflow-run PR-association cases; actionlint and Git diff checks also passed (exit 0). The bounded association fallback is complete. Local review, correction and documentation gates are complete on the local implementation branch, with a final documentation commit forthcoming. Earlier hashes in this report remain historical checkpoints.
 
 Remote workflow publication, real Docker CI fixture and automatic PR comment/artifact evidence remain pending the previously recorded authorization/runtime prerequisites. User has not replied to the authorization-refresh/local-handoff choice. No real provider execution is claimed or required in the approved no-key scope.
+
+
+## Publication resumed after authorization refresh
+
+User refreshed workflow scope and coordinator successfully pushed implementation and demo branches. The previous OAuth publication block is resolved; earlier report entries describe historical checkpoints. Real GitHub CI [45692900997](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692900997) is running. Frontend test/typecheck steps passed; backend and real Docker fixture outcomes remain pending final coordinator evidence.
+
+Default-branch workflow_run activation remains distinct from publishing an implementation branch; no merge is authorized. Live provider execution remains outside the no-key scope. Local Docker access is still unavailable and is not being represented as successful container verification.
+
+
+## Final real CI evidence — container/artifact gates complete
+
+Coordinator confirmed all three jobs passed in implementation PR #1 run [45692900997](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692900997). Actual parsed fixture result for tested merge `baa1be1bc8bb7053621ab833e3b4918e5a166ddd`: provider `fixture`, status `verified`, baseline passed; first attempt install 0/test 1, second attempt install 0/test 0. This establishes actual Docker isolation-path execution and bounded repair integration, supplementing prior mock-only local contracts. Artifact [15060230453](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692900997/artifacts/15060230453) contains patch digest `ec62e4ee0e0e58d6cebfe23f770f1a7f456415bd138d65541546240973d135e6`.
+
+Demo [PR #2](https://github.com/Dziemiano/taskly-app-node/pull/2) run [45692977519](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692977519) also passed, independently confirmed by automation specialist. No additional code correction or optional rerun is required. Local architecture review, correction, documentation, real CI, Docker fixture and artifact gates are complete.
+
+Remaining explicit activation prerequisite: automatic PR-comment publisher requires the trusted workflow_run workflow on default branch; no merge is authorized. Live model generation is intentionally excluded by the no-key scope. Fixture verification must continue to be described as fixture verification.

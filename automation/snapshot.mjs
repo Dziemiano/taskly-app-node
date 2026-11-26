@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, chmod } from "node:fs/promises";
 import path from "node:path";
 import { checked } from "./process.mjs";
 import { LIMITS, safeSha } from "./contracts.mjs";
@@ -30,6 +30,7 @@ export async function exportSnapshot(repository, sha, destination) {
     const content = await checked("git", ["show", match[2]], {
       cwd: repository,
       maxBytes: LIMITS.snapshotBytes,
+      encoding: null,
     });
     bytes += Buffer.byteLength(content);
     if (bytes > LIMITS.snapshotBytes)
@@ -37,6 +38,7 @@ export async function exportSnapshot(repository, sha, destination) {
     const file = path.join(destination, match[3]);
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, content);
+    await chmod(file, match[1] === "100755" ? 0o755 : 0o644);
   }
   return { files: entries.length, bytes };
 }

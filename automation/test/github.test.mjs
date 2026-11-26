@@ -8,7 +8,16 @@ import {
   github,
 } from "../github.mjs";
 const head = "a".repeat(40),
-  identity = { repository: "owner/repo", pr: 7, head };
+  identity = { repository: "owner/repo", pr: 7, head, runId: 100 };
+const verification = {
+  ok: true,
+  integrity: { ok: true, files: 1 },
+  steps: [
+    { phase: "install", code: 0 },
+    { phase: "test", code: 0 },
+  ],
+  executedTests: [{ path: "frontend/src/a.test.ts", passed: 1 }],
+};
 const report = {
   version: 1,
   ...identity,
@@ -16,9 +25,14 @@ const report = {
   rationale: "Verified behavior",
   skills: ["frontend-unit-tests"],
   attempts: [
-    { attempt: 1, validation: "accepted", verification: { ok: true } },
+    {
+      attempt: 1,
+      validation: "accepted",
+      files: ["frontend/src/a.test.ts"],
+      verification,
+    },
   ],
-  baseline: { ok: true },
+  baseline: verification,
   patch: { file: "tests.patch", sha256: "b".repeat(64) },
 };
 
@@ -130,8 +144,8 @@ test("publisher creates a comment when none exists and paginates before writing"
     }),
     { status: "published" },
   );
-  assert.equal(calls.length, 4);
-  assert.equal(calls[3].options.method, "POST");
+  assert.equal(calls.length, 5);
+  assert.equal(calls[4].options.method, "POST");
 });
 
 test("mismatched report identity or invalid evidence is rejected before GitHub calls", async () => {
@@ -260,4 +274,123 @@ test("identity fallback rejects invalid trigger identity and association budget 
       /budget/,
     );
   }
+});
+
+test("publisher rechecks head after pagination and never writes an obsolete result", async () => {
+  let reads = 0,
+    writes = 0;
+  const api = async (route, options) => {
+    if (options) {
+      writes++;
+      return {};
+    }
+    if (route.includes("/pulls/"))
+      return {
+        state: "open",
+        head: { sha: ++reads === 1 ? head : "f".repeat(40) },
+      };
+    return [];
+  };
+  assert.deepEqual(await publish(report, identity, { api }), {
+    status: "stale",
+  });
+  assert.equal(writes, 0);
+});
+
+test("same-head older workflow cannot overwrite a newer bot result", async () => {
+  let writes = 0;
+  const api = async (route, options) => {
+    if (options) {
+      writes++;
+      return {};
+    }
+    if (route.includes("/pulls/"))
+      return { state: "open", head: { sha: head } };
+    return [
+      {
+        id: 2,
+        user: { login: "github-actions[bot]" },
+        body: "<!-- taskly-unit-test-agent -->\n<!-- taskly-source-run:101 -->",
+      },
+    ];
+  };
+  assert.deepEqual(await publish(report, identity, { api }), {
+    status: "stale",
+  });
+  assert.equal(writes, 0);
+});
+
+test("verified publication rejects missing integrity, unexecuted proposals and cross-run artifacts", async () => {
+  for (const invalid of [
+    { ...report, runId: 101 },
+    { ...report, baseline: { ...verification, integrity: { ok: false } } },
+    {
+      ...report,
+      attempts: [
+        {
+          ...report.attempts[0],
+          verification: { ...verification, executedTests: [] },
+        },
+      ],
+    },
+    {
+      ...report,
+      attempts: [
+        {
+          ...report.attempts[0],
+          verification: {
+            ...verification,
+            steps: [{ phase: "test", code: 0 }],
+          },
+        },
+      ],
+    },
+  ])
+    await assert.rejects(() =>
+      publish(invalid, identity, {
+        api: () => assert.fail("must reject before write"),
+      }),
+    );
+});
+
+test("GitHub reads retry transient failures once but mutations never retry", async () => {
+  let calls = 0;
+  const result = await github("/repos/owner/repo", {
+    delay: async () => {},
+    fetchImpl: async () =>
+      ++calls === 1
+        ? new Response("", { status: 503 })
+        : Response.json({ ok: true }),
+  });
+  assert.deepEqual(result, { ok: true });
+  assert.equal(calls, 2);
+  calls = 0;
+  await assert.rejects(
+    () =>
+      github("/repos/owner/repo", {
+        method: "POST",
+        body: { body: "x" },
+        delay: async () => {},
+        fetchImpl: async (_url, options) => {
+          calls++;
+          assert.equal(options.headers["Content-Type"], "application/json");
+          return new Response("", { status: 503 });
+        },
+      }),
+    /HTTP 503/,
+  );
+  assert.equal(calls, 1);
+  calls = 0;
+  await assert.rejects(
+    () =>
+      github("/repos/owner/repo", {
+        delay: async () => {},
+        fetchImpl: async () => {
+          calls++;
+          throw new Error("offline");
+        },
+      }),
+    /offline/,
+  );
+  assert.equal(calls, 2);
 });

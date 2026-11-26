@@ -156,3 +156,50 @@ test("symlink files, symlink ancestors and directory targets are rejected", asyn
     /filesystem/,
   );
 });
+
+test("proposal rejects test destinations in runner-excluded directories and ancestor conflicts", async (t) => {
+  const root = await mkdtemp(path.join(tmpdir(), "taskly-contract-hidden-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  for (const destination of [
+    "frontend/src/node_modules/hidden.test.ts",
+    "frontend/src/dist/hidden.test.ts",
+    "frontend/src/.git/hidden.test.ts",
+    "backend/tests/node_modules/hidden.test.ts",
+  ]) {
+    await assert.rejects(() =>
+      validateProposal(
+        {
+          decision: "generate",
+          rationale: "case",
+          files: [{ path: destination, content: "test('case', () => {})" }],
+        },
+        root,
+      ),
+    );
+  }
+  await assert.rejects(() =>
+    validateProposal(
+      {
+        decision: "generate",
+        rationale: "case",
+        files: [
+          { path: "frontend/src/a.test.ts", content: "test('case', () => {})" },
+          {
+            path: "frontend/src/a.test.ts/nested.test.ts",
+            content: "test('case', () => {})",
+          },
+        ],
+      },
+      root,
+    ),
+  );
+});
+
+test("commit and repository identities reject coercion and URL dot segments", async () => {
+  const { safeSha, safeRepo } = await import("../contracts.mjs");
+  for (const value of [["a".repeat(40)], null, 12])
+    assert.throws(() => safeSha(value));
+  for (const value of ["../..", "owner/..", "./repo", ["owner/repo"], null])
+    assert.throws(() => safeRepo(value));
+  assert.equal(safeRepo("owner/.github"), "owner/.github");
+});

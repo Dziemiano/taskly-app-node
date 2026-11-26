@@ -46,3 +46,17 @@ Final documentation whitespace check passed, exit 0.
 ## Final handoff evidence
 
 Coordinator supplied final local root contract run: 33/33 passing cases, with current PR-association resolver fallback included; 37 frontend + 86 backend + 33 automation = 156 application/contract cases. Actionlint and diff checks pass. SOLUTION.md now includes this exact evidence, local demonstration branch `codex/demo-overdue-filter`, planned sibling `taskly-solution.bundle`, publication/auth commands and demo PR creation against the implementation branch. It continues to state that no remote demo or successful Docker/GitHub run exists yet. No application suites were rerun for documentation changes.
+
+## OAuth resolution and real GitHub execution
+
+Coordinator confirmed refreshed workflow OAuth authorization and successful publication: implementation f1dd2d3 to codex/unit-test-agent and feature 864fe33 to codex/demo-overdue-filter. PR #1 now carries the full implementation; PR #2 targets that implementation branch. Updated present-tense SOLUTION.md blocker statements; retained historical rejected publication evidence above.
+
+Coordinator confirmed real CI run 45692900997: both application jobs passed typecheck/coverage and automation contracts passed. Real Docker fixture remains in progress at this checkpoint. SOLUTION.md links that run and does not claim container success. No API key or live provider run; default-branch workflow activation remains pending review/merge.
+
+## Real container/repair evidence — final
+
+Coordinator confirmed complete success of PR #1 CI run 45692900997 (all three jobs) and feature PR #2 CI run 45692977519. Real fixture artifact 15060230453 records provider fixture, status verified, baseline.ok true, first attempt install 0/test 1 and second attempt install 0/test 0. Selected skills: analyze-test-changes and frontend-unit-tests. Accepted candidate passed 40 frontend + 86 backend tests and both typechecks. Tested merge checkout baa1be1bc8bb7053621ab833e3b4918e5a166ddd corresponds to PR head f1dd2d3; patch SHA-256 ec62e4ee0e0e58d6cebfe23f770f1a7f456415bd138d65541546240973d135e6.
+
+Replaced current pending Docker claims in SOLUTION.md with actual run/artifact evidence and preserved local Docker failure as historical environment evidence. No live model request is claimed. Default-branch merge is still required before privileged workflow/comment activation; publisher behavior currently has contract-test evidence rather than a real privileged run. No remote writes by documentation specialist.
+
+Final `git diff --check -- SOLUTION.md docs/reports/documentation.md`: exit 0.

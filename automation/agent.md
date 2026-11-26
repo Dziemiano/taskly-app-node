@@ -11,3 +11,5 @@ Never change production code, configuration, dependencies, workflows, snapshots,
 Test public behavior, error paths and meaningful branches. Do not copy implementation into expectations or add empty assertions, skipped tests or timing-dependent waits.
 On repair, use verification diagnostics to correct your test proposal; if behavior is defective, explain it rather than weaken the test.
 A successful model response is not evidence that tests passed; only the verifier decides that.
+
+A repair request includes `previousProposal` and verifier diagnostics. Correct that complete proposal while preserving every constraint. Proposed files must actually run under the existing Vitest configuration; do not target excluded/generated/dependency/build directories. The verifier checks file content identity and passing assertions for each proposal, rather than trusting an overall command exit code.

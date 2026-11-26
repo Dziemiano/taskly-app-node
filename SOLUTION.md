@@ -45,10 +45,10 @@ Run the same commands from `backend`. Its installation generates the Prisma clie
 
 | Suite | Tests before → after | Statement coverage | Line coverage |
 | --- | --- | --- | --- |
-| Frontend | 18 → 37 | 46.42% → 69.04% | 47.68% → 67.54% |
-| Backend | 48 → 86 | 30.23% → 96.89% | 33.02% → 97.24% |
+| Frontend | 18 → 68 | 46.42% → 97.61% | 47.68% → 99.33% |
+| Backend | 48 → 91 | 30.23% → 96.89% | 33.02% → 97.24% |
 
-Frontend additions cover HTTP response/error/cancellation contracts, React Query mutation cache updates and notice lifetime/cleanup. No production code or coverage exclusions were changed. Backend additions cover route success/validation/missing-resource behavior, app errors/health, configuration and controlled startup/shutdown. Exact commands and all metrics are recorded in [frontend](docs/reports/frontend.md) and [backend](docs/reports/backend.md) reports. Local execution used Node 26.8.2 and npm 11.19.1. The final root contract suite passed **33/33** cases; together with frontend and backend this is **156 passing application/contract cases**. Workflow syntax passed actionlint, and whitespace checks passed. These results do not include a successful Docker or GitHub run.
+Frontend additions cover HTTP response/error/cancellation contracts, React Query mutation cache updates and notice lifetime/cleanup. No production code or coverage exclusions were changed. Backend additions cover route success/validation/missing-resource behavior, app errors/health, configuration and controlled startup/shutdown. Exact commands and all metrics are recorded in [frontend](docs/reports/frontend.md) and [backend](docs/reports/backend.md) reports. Local execution used Node 26.8.2 and npm 11.19.1. The final root contract suite passed **63/63** cases; together with frontend and backend this is **222 passing application/contract cases**. Workflow syntax passed actionlint, and whitespace checks passed. GitHub [CI run 45692900997](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692900997) also passed both application jobs, including typecheck and coverage, and the automation contracts. All three jobs completed successfully, including real Docker fixture verification. [Demo PR CI run 45692977519](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692977519) also passed.
 
 ## Example run without an API key
 
@@ -59,17 +59,19 @@ npm test
 npm run agent:demo
 ```
 
-The separate local branch `codex/demo-overdue-filter` carries the demonstration feature against `codex/unit-test-agent`; it has not been published as a remote PR. The demo exports the committed application snapshot, applies `automation/fixtures/overdue-feature.patch`, and uses `overdue-proposal.json` as a deterministic provider response. It selects `analyze-test-changes` and `frontend-unit-tests`. The proposed tests cover local-date boundaries, completed/undated exclusions, search/sort composition and the new UI option. An intentionally failing first proposal exercises repair; the second proposal removes that fixture-only failure. Both frontend and backend coverage/typechecks run in real Docker containers for the baseline and candidates.
+The separate [demonstration PR #2](https://github.com/Dziemiano/taskly-app-node/pull/2) carries the overdue feature on `codex/demo-overdue-filter` against `codex/unit-test-agent`. The demo exports the committed application snapshot, applies `automation/fixtures/overdue-feature.patch`, and uses `overdue-proposal.json` as a deterministic provider response. It selects `analyze-test-changes` and `frontend-unit-tests`. The proposed tests cover local-date boundaries, completed/undated exclusions, search/sort composition and the new UI option. An intentionally failing first proposal exercises repair; the second proposal removes that fixture-only failure. Both frontend and backend coverage/typechecks run in real Docker containers for the baseline and candidates.
 
 Outputs are `agent-demo-output/result.json` and, only after successful verification, `agent-demo-output/tests.patch`. The `CI` workflow uploads them as `fixture-agent-demo`. This is **fixture-provider execution, not live model generation**.
 
-The feature passed the existing 37 frontend tests and typecheck locally. With the fixture tests, 40 tests and typecheck passed. Restoring the old production behavior produced two expected failures: missing UI option and incorrect overdue filtering. Local Docker execution correctly stopped with `baseline_failed` because this machine denies Docker socket access; no local container success is claimed. GitHub container verification has not run: publishing workflow files is currently blocked by the local GitHub OAuth credential lacking the `workflow` scope. Existing SSH authentication also failed. These are external publication prerequisites, not passing CI evidence.
+The real [GitHub fixture artifact](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692900997/artifacts/15060230453) records `status: verified`, passing baseline, first-attempt install exit 0/test exit 1, then repaired install/test exit 0. The accepted candidate passed 40 frontend and 86 backend tests plus both typechecks. The demo tested merge checkout `baa1be1bc8bb7053621ab833e3b4918e5a166ddd` for PR head `f1dd2d3`; patch SHA-256 is `ec62e4ee0e0e58d6cebfe23f770f1a7f456415bd138d65541546240973d135e6`.
+
+The feature passed the existing 37 frontend tests and typecheck locally. With the fixture tests, 40 tests and typecheck passed. Restoring the old production behavior produced two expected failures: missing UI option and incorrect overdue filtering. Local Docker execution correctly stopped with `baseline_failed` because this machine denies Docker socket access; no local container success is claimed. The owner refreshed the GitHub OAuth workflow permission and both branches were published. Real Docker verification succeeded on GitHub as recorded above; local Docker remains unavailable.
 
 ## GitHub activation and results
 
-The local checkout contains the complete implementation. [Draft PR #1](https://github.com/Dziemiano/taskly-app-node/pull/1) currently contains the application-test portion only; the push containing workflow files was rejected because the local OAuth credential lacks `workflow` scope. No GitHub CI/container run is claimed. Automatic live generation is intentionally not activated in the current no-key delivery.
+The complete implementation is published in [PR #1](https://github.com/Dziemiano/taskly-app-node/pull/1), initially at `f1dd2d3`; [PR #2](https://github.com/Dziemiano/taskly-app-node/pull/2), initially at `864fe33`, demonstrates the separate feature diff. The earlier OAuth workflow-scope blocker is resolved, and CI passed for both PRs. Automatic live generation is intentionally not activated in the current no-key delivery. The privileged PR commenter has not run because the workflow has not been merged to the default branch; its identity/staleness/idempotence behavior is covered by contract tests.
 
-1. Publish the remaining local branch after authenticating with permission to update workflows (for the existing GitHub CLI login: `gh auth refresh -h github.com -s workflow`, completed interactively by the repository owner), then push `codex/unit-test-agent`. Review and merge the complete implementation into the repository default branch. The privileged `workflow_run` definition and trusted controller must be present there; merely opening this implementation PR does not activate them.
+1. Review and merge the complete implementation from PR #1 into the repository default branch. The privileged `workflow_run` definition and trusted controller must be present there; merely opening this implementation PR does not activate them.
 2. In **Settings → Secrets and variables → Actions**, create repository secret `OPENAI_API_KEY` and repository variable `OPENAI_MODEL` with a model available to the account that supports Responses API structured outputs. The key is used only by the generation step. Never commit it or paste it into PR text.
 3. Ensure GitHub Actions is enabled and repository/organization policy permits the publisher's declared issue/PR write permissions. Open or update a same-repository PR with behavioral TypeScript changes.
 4. `CI` runs on PR open, synchronization and reopening. Its completion triggers **Unit Test Agent**. Failed CI, forks and missing key/model receive explicit skip statuses. With prerequisites met, the controller verifies baseline, generates or declines tests, and allows one repair.
@@ -88,15 +90,14 @@ Review the tests and rerun both application suites before committing. The agent 
 
 ## Publishing the local handoff
 
-The coordinator provides the complete local history in `../taskly-solution.bundle` beside this checkout. To recover it elsewhere, use `git clone --branch codex/unit-test-agent /path/to/taskly-solution.bundle taskly-solution`, then set that clone's origin to your GitHub repository. With the current checkout and corrected workflow permission:
+The coordinator provides the complete local history in `../taskly-solution.bundle` beside this checkout. To recover it elsewhere, use `git clone --branch codex/unit-test-agent /path/to/taskly-solution.bundle taskly-solution`, then set that clone's origin to your GitHub repository. To publish a recovered checkout to another authorized repository, ensure authentication permits workflow updates and push both branches:
 
 ```sh
 gh auth refresh -h github.com -s workflow
 git push -u origin codex/unit-test-agent codex/demo-overdue-filter
-gh pr create --base codex/unit-test-agent --head codex/demo-overdue-filter --title "Add overdue status filter" --body "Demonstrates the PR test-agent target: overdue filtering and its status selector. See SOLUTION.md for the deterministic fixture run and live activation prerequisites."
 ```
 
-Draft PR #1 already tracks the implementation branch; pushing updates it. The demonstration PR targets that branch so reviewers can inspect only the feature diff. The privileged agent still requires default-branch activation described above. Run the secretless `CI` gate after publication and retain its real Docker fixture artifact before claiming container verification succeeded.
+Both branches and PRs are already published in this repository. PR #1 tracks the implementation branch; PR #2 targets it so reviewers can inspect only the feature diff. The privileged agent still requires default-branch activation described above. Retain the `CI` fixture artifact after a successful real Docker run; do not confuse fixture-provider success with live model generation.
 
 ## Assumptions and limitations
 
@@ -107,3 +108,12 @@ Draft PR #1 already tracks the implementation branch; pushing updates it. The de
 - Live model generation is outside the user-approved no-key verification scope. Reports distinguish local tests, fixture-provider tests, real container execution and GitHub runs.
 
 Production improvements would include a representative agent evaluation dataset, stronger worker isolation, dependency/network controls, per-repository spend quotas, richer traces and coverage of changed behavior, and a reviewed opt-in path for fork contributions.
+
+
+## Independent audit follow-up
+
+The complete [audit](docs/AUDIT.md) reproduced and corrected false verification of excluded tests, setup mutation of the offered patch, missing repair context, binary/mode snapshot corruption, Git conversion effects, unbounded provider reads and publication/error-path gaps. Verification now requires the exact proposed test files to report passing assertions, matching content hashes and unchanged protected source/configuration. Test source is read-only inside the container. The demo also executes two negative Docker probes and emits `audit-probes.json`; it fails if exclusion or setup mutation is incorrectly accepted.
+
+Additional frontend tests exercise full feature flows and boundary cases; backend tests exercise each repository-operation failure response. Dependency audits now report **zero known vulnerabilities in both manifests/lockfiles**. Patch upgrades and two scoped transitive overrides were checked by frontend/backend production builds, Storybook build and Prisma generation; see [dependency report](docs/reports/audit-dependencies.md). CI enforces `npm audit --audit-level=moderate` and builds. These advisories are time-sensitive; a future audit may report new issues.
+
+The earlier CI links above document the original delivery. The audit updates require their own real-container gate; final run and artifact evidence is recorded in docs/AUDIT.md after execution. No live model execution or automatic default-branch comment is implied by fixture success.

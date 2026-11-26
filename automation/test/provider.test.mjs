@@ -93,3 +93,75 @@ test("trusted skill files are actually loaded into agent instructions", async ()
   assert.ok(instructions.length > 1000);
   await assert.rejects(() => loadInstructions(root, ["missing-skill"]));
 });
+
+test("provider cancels oversized response streams before reading the full body", async () => {
+  let produced = 0;
+  let cancelled = false;
+  const body = new ReadableStream({
+    pull(controller) {
+      produced++;
+      controller.enqueue(new Uint8Array(32_000).fill(65));
+      if (produced >= 100) controller.close();
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+  await assert.rejects(
+    () =>
+      responsesProvider(input, {
+        key: "test-only",
+        model: "test-model",
+        fetchImpl: async () => new Response(body),
+      }),
+    /exceeds budget/,
+  );
+  assert.equal(cancelled, true);
+  assert.ok(produced < 100);
+});
+
+test("provider includes the failed complete proposal and bounded diagnostics for stateless repair", async () => {
+  const previousProposal = {
+    decision: "generate",
+    rationale: "case",
+    files: [
+      {
+        path: "backend/tests/x.test.ts",
+        content: "test('case', () => expect(true).toBe(false))",
+      },
+    ],
+  };
+  let request;
+  await responsesProvider(
+    {
+      ...input,
+      feedback: { ok: false, previousProposal, steps: [{ code: 1 }] },
+      attempt: 2,
+    },
+    {
+      key: "test-only",
+      model: "test-model",
+      fetchImpl: async (_url, init) => {
+        request = JSON.parse(init.body);
+        return new Response(
+          JSON.stringify(
+            completed([
+              {
+                type: "output_text",
+                text: JSON.stringify({
+                  decision: "noop",
+                  rationale: "covered",
+                  files: [],
+                }),
+              },
+            ]),
+          ),
+        );
+      },
+    },
+  );
+  assert.deepEqual(
+    JSON.parse(request.input).untrustedDiagnostics.previousProposal,
+    previousProposal,
+  );
+});

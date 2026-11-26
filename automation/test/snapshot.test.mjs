@@ -4,6 +4,8 @@ import {
   mkdtemp,
   mkdir,
   writeFile,
+  chmod,
+  stat,
   readFile,
   symlink,
   rm,
@@ -98,5 +100,25 @@ test("context binds exact base/head diff and neighboring source/test contents", 
   await assert.rejects(
     () => contextFor(repo, base, head, Array(101).fill("a"), root),
     /count/,
+  );
+});
+
+test("snapshot preserves binary bytes and tracked executable mode exactly", async (t) => {
+  const { repo, root, commit } = await repository(t);
+  const bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0xff, 0x00, 0x80]);
+  await writeFile(path.join(repo, "frontend/image.png"), bytes);
+  await writeFile(path.join(repo, "backend/script.sh"), "#!/bin/sh\nexit 0\n");
+  await chmod(path.join(repo, "backend/script.sh"), 0o755);
+  const head = await commit();
+  const out = path.join(root, "out");
+  await exportSnapshot(repo, head, out);
+  assert.deepEqual(await readFile(path.join(out, "frontend/image.png")), bytes);
+  assert.equal(
+    (await stat(path.join(out, "backend/script.sh"))).mode & 0o777,
+    0o755,
+  );
+  assert.equal(
+    (await stat(path.join(out, "frontend/image.png"))).mode & 0o777,
+    0o644,
   );
 });
