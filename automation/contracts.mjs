@@ -31,7 +31,15 @@ export function testPath(value) {
   return (
     typeof value === "string" &&
     value.length < 240 &&
-    !value.split("/").some((x) => !x || x === "." || x === "..") &&
+    !value
+      .split("/")
+      .some(
+        (x) =>
+          !x ||
+          x === "." ||
+          x === ".." ||
+          ["node_modules", "dist", ".git"].includes(x),
+      ) &&
     !/[\\\x00-\x1f\x7f]/.test(value) &&
     (/^frontend\/src\/[a-zA-Z0-9_./-]+\.test\.tsx?$/.test(value) ||
       /^backend\/tests\/[a-zA-Z0-9_./-]+\.test\.ts$/.test(value))
@@ -62,6 +70,11 @@ export async function validateProposal(proposal, root) {
       Object.keys(file).sort().join() !== "content,path" ||
       !testPath(file.path) ||
       seen.has(file.path) ||
+      [...seen].some(
+        (other) =>
+          file.path.startsWith(`${other}/`) ||
+          other.startsWith(`${file.path}/`),
+      ) ||
       typeof file.content !== "string" ||
       !file.content.trim() ||
       /\x00/.test(file.content) ||
@@ -123,11 +136,16 @@ export function actionable(paths) {
   );
 }
 export function safeSha(sha) {
-  if (!/^[a-f0-9]{40}$/.test(sha)) throw new Error("Invalid commit identity");
+  if (typeof sha !== "string" || !/^[a-f0-9]{40}$/.test(sha))
+    throw new Error("Invalid commit identity");
   return sha;
 }
 export function safeRepo(repo) {
-  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo))
+  if (
+    typeof repo !== "string" ||
+    !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo) ||
+    repo.split("/").some((part) => part === "." || part === "..")
+  )
     throw new Error("Invalid repository");
   return repo;
 }

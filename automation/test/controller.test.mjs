@@ -113,6 +113,11 @@ test("one failed verification is fed back for repair and second passing candidat
   assert.equal(result.attempts.length, 2);
   assert.equal(received[0].feedback, null);
   assert.equal(received[1].feedback.ok, false);
+  assert.deepEqual(received[1].feedback.previousProposal, await original());
+  assert.equal(
+    received[1].feedback.previousProposal.files[0].content,
+    "test('a',()=>{})\n",
+  );
   assert.equal(received[1].attempt, 2);
   assert.ok(
     received[0].instructions.includes("Loaded skill: frontend-unit-tests"),
@@ -188,4 +193,49 @@ test("a reused output directory never publishes an earlier verified patch after 
   assert.equal(result.status, "noop");
   assert.equal(result.patch, null);
   await assert.rejects(() => readFile(path.join(args.output, "tests.patch")));
+});
+
+test("candidate verification receives exact expected test paths and content hashes", async (t) => {
+  const args = await fixture(t);
+  const calls = [];
+  args.verify = async (root, options) => {
+    calls.push({ root, options });
+    return { ok: true, steps: [] };
+  };
+  const result = await runAgent(args);
+  assert.equal(result.status, "verified");
+  assert.equal(calls[0].options, undefined);
+  assert.deepEqual(calls[1].options.expectedTests, [
+    {
+      path: "frontend/src/a.test.ts",
+      sha256: createHash("sha256").update("test('a',()=>{})\n").digest("hex"),
+    },
+  ]);
+});
+
+test("emitted patch preserves proposed bytes despite PR EOL attributes", async (t) => {
+  const args = await fixture(t);
+  await writeFile(
+    path.join(args.snapshot, "frontend/.gitattributes"),
+    "*.test.ts text eol=lf ident\n",
+  );
+  const content =
+    "// $Id$\r\nimport { it, expect } from 'vitest'\r\nit('bytes', () => expect(true).toBe(true))\r\n";
+  args.provider = async () => ({
+    decision: "generate",
+    rationale: "preserve bytes",
+    files: [{ path: "frontend/src/bytes.test.ts", content }],
+  });
+  const result = await runAgent(args);
+  assert.equal(result.status, "verified");
+  await checked("git", ["apply", path.join(args.output, "tests.patch")], {
+    cwd: args.snapshot,
+  });
+  assert.equal(
+    await readFile(
+      path.join(args.snapshot, "frontend/src/bytes.test.ts"),
+      "utf8",
+    ),
+    content,
+  );
 });

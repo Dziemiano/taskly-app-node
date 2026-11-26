@@ -6,6 +6,7 @@ import { checked, command } from "./process.mjs";
 import { exportSnapshot } from "./snapshot.mjs";
 import { runAgent } from "./controller.mjs";
 import { dockerVerify } from "./verifier.mjs";
+import { runVerifierAudit } from "./verifier-audit.mjs";
 const root = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const temporary = await mkdtemp(path.join(tmpdir(), "taskly-demo-"));
 try {
@@ -69,8 +70,15 @@ try {
         : proposal,
   });
   console.log(JSON.stringify(result, null, 2));
-  if (result.status !== "verified" || result.attempts.length !== 2)
+  if (result.status !== "verified" || result.attempts.length !== 2) {
     process.exitCode = 1;
+  } else {
+    const audit = await runVerifierAudit({
+      snapshot,
+      output: path.join(root, "agent-demo-output"),
+    });
+    console.log(JSON.stringify(audit, null, 2));
+  }
 } finally {
   await rm(temporary, { recursive: true, force: true });
 }

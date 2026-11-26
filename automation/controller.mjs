@@ -79,6 +79,13 @@ export async function runAgent({
       const candidate = path.join(temporary, `candidate-${attempt}`);
       await cp(snapshot, candidate, { recursive: true });
       await checked("git", ["init", "--quiet"], { cwd: candidate });
+      // Highest-precedence trusted attributes keep PR attributes and host EOL/clean
+      // conversion from altering blobs or invoking a configured external filter.
+      await mkdir(path.join(candidate, ".git/info"), { recursive: true });
+      await writeFile(
+        path.join(candidate, ".git/info/attributes"),
+        "* -text -filter -ident -working-tree-encoding\n",
+      );
       await checked("git", ["add", "--force", "--", "frontend", "backend"], {
         cwd: candidate,
       });
@@ -115,7 +122,11 @@ export async function runAgent({
       );
       await rm(path.join(candidate, ".git"), { recursive: true, force: true });
       if (!patch.trim()) throw new Error("Proposal produced an empty patch");
-      const verification = await verify(candidate);
+      const expectedTests = proposal.files.map((file) => ({
+        path: file.path,
+        sha256: createHash("sha256").update(file.content).digest("hex"),
+      }));
+      const verification = await verify(candidate, { expectedTests });
       result.attempts.push({
         attempt,
         validation: "accepted",
@@ -131,7 +142,10 @@ export async function runAgent({
         await writeFile(path.join(output, "tests.patch"), patch);
         return await finish();
       }
-      feedback = verification;
+      feedback = {
+        ...verification,
+        previousProposal: proposal,
+      };
     }
     result.status = "failed";
     result.rationale ??= "Generation exhausted the two-attempt budget.";

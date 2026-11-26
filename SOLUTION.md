@@ -45,10 +45,10 @@ Run the same commands from `backend`. Its installation generates the Prisma clie
 
 | Suite | Tests before → after | Statement coverage | Line coverage |
 | --- | --- | --- | --- |
-| Frontend | 18 → 37 | 46.42% → 69.04% | 47.68% → 67.54% |
-| Backend | 48 → 86 | 30.23% → 96.89% | 33.02% → 97.24% |
+| Frontend | 18 → 68 | 46.42% → 97.61% | 47.68% → 99.33% |
+| Backend | 48 → 91 | 30.23% → 96.89% | 33.02% → 97.24% |
 
-Frontend additions cover HTTP response/error/cancellation contracts, React Query mutation cache updates and notice lifetime/cleanup. No production code or coverage exclusions were changed. Backend additions cover route success/validation/missing-resource behavior, app errors/health, configuration and controlled startup/shutdown. Exact commands and all metrics are recorded in [frontend](docs/reports/frontend.md) and [backend](docs/reports/backend.md) reports. Local execution used Node 26.8.2 and npm 11.19.1. The final root contract suite passed **33/33** cases; together with frontend and backend this is **156 passing application/contract cases**. Workflow syntax passed actionlint, and whitespace checks passed. GitHub [CI run 45692900997](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692900997) also passed both application jobs, including typecheck and coverage, and the automation contracts. All three jobs completed successfully, including real Docker fixture verification. [Demo PR CI run 45692977519](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692977519) also passed.
+Frontend additions cover HTTP response/error/cancellation contracts, React Query mutation cache updates and notice lifetime/cleanup. No production code or coverage exclusions were changed. Backend additions cover route success/validation/missing-resource behavior, app errors/health, configuration and controlled startup/shutdown. Exact commands and all metrics are recorded in [frontend](docs/reports/frontend.md) and [backend](docs/reports/backend.md) reports. Local execution used Node 26.8.2 and npm 11.19.1. The final root contract suite passed **63/63** cases; together with frontend and backend this is **222 passing application/contract cases**. Workflow syntax passed actionlint, and whitespace checks passed. GitHub [CI run 45692900997](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692900997) also passed both application jobs, including typecheck and coverage, and the automation contracts. All three jobs completed successfully, including real Docker fixture verification. [Demo PR CI run 45692977519](https://github.com/Dziemiano/taskly-app-node/actions/runs/45692977519) also passed.
 
 ## Example run without an API key
 
@@ -108,3 +108,12 @@ Both branches and PRs are already published in this repository. PR #1 tracks the
 - Live model generation is outside the user-approved no-key verification scope. Reports distinguish local tests, fixture-provider tests, real container execution and GitHub runs.
 
 Production improvements would include a representative agent evaluation dataset, stronger worker isolation, dependency/network controls, per-repository spend quotas, richer traces and coverage of changed behavior, and a reviewed opt-in path for fork contributions.
+
+
+## Independent audit follow-up
+
+The complete [audit](docs/AUDIT.md) reproduced and corrected false verification of excluded tests, setup mutation of the offered patch, missing repair context, binary/mode snapshot corruption, Git conversion effects, unbounded provider reads and publication/error-path gaps. Verification now requires the exact proposed test files to report passing assertions, matching content hashes and unchanged protected source/configuration. Test source is read-only inside the container. The demo also executes two negative Docker probes and emits `audit-probes.json`; it fails if exclusion or setup mutation is incorrectly accepted.
+
+Additional frontend tests exercise full feature flows and boundary cases; backend tests exercise each repository-operation failure response. Dependency audits now report **zero known vulnerabilities in both manifests/lockfiles**. Patch upgrades and two scoped transitive overrides were checked by frontend/backend production builds, Storybook build and Prisma generation; see [dependency report](docs/reports/audit-dependencies.md). CI enforces `npm audit --audit-level=moderate` and builds. These advisories are time-sensitive; a future audit may report new issues.
+
+The earlier CI links above document the original delivery. The audit updates require their own real-container gate; final run and artifact evidence is recorded in docs/AUDIT.md after execution. No live model execution or automatic default-branch comment is implied by fixture success.

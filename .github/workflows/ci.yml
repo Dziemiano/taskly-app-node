@@ -29,8 +29,15 @@ jobs:
       - run: npm ci --no-audit --no-fund
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
+      - run: npm audit --audit-level=moderate
       - run: npm run typecheck
       - run: npm run test:coverage
+      - run: npm run build
+      - name: Verify Storybook dependency compatibility
+        if: matrix.directory == 'frontend'
+        run: npm run build-storybook
+        env:
+          STORYBOOK_DISABLE_TELEMETRY: "1"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: coverage-${{ matrix.directory }}

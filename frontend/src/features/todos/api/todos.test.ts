@@ -27,3 +27,30 @@ it('sends only writable task fields on creation', async () => {
     }),
   })
 })
+
+it('sends only provided writable update fields and preserves an explicit cleared due date', async () => {
+  vi.mocked(request).mockResolvedValue(todoFixture)
+  await todosApi.update(7, { ...todoFixture, title: 'Edited', due_date: null })
+  expect(request).toHaveBeenCalledWith('/todos/7', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      title: 'Edited',
+      description: '',
+      priority: 'medium',
+      due_date: null,
+      completed: false,
+    }),
+  })
+  await todosApi.update(7, { completed: true })
+  expect(request).toHaveBeenLastCalledWith('/todos/7', {
+    method: 'PATCH',
+    body: '{"completed":true}',
+  })
+})
+
+it('uses DELETE and propagates removal failures', async () => {
+  const error = new Error('Delete failed')
+  vi.mocked(request).mockRejectedValueOnce(error)
+  await expect(todosApi.remove(7)).rejects.toBe(error)
+  expect(request).toHaveBeenCalledWith('/todos/7', { method: 'DELETE' })
+})

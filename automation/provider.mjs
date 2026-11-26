@@ -53,10 +53,29 @@ export async function responsesProvider(
       },
     }),
   });
-  if (!response.ok) throw new Error(`Provider HTTP ${response.status}`);
-  const text = await response.text();
-  if (Buffer.byteLength(text) > LIMITS.proposalBytes * 3)
-    throw new Error("Provider response exceeds budget");
+  if (!response.ok) {
+    await response.body?.cancel().catch(() => {});
+    throw new Error(`Provider HTTP ${response.status}`);
+  }
+  if (!response.body) throw new Error("Provider response body missing");
+  const reader = response.body.getReader();
+  const chunksRead = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > LIMITS.proposalBytes * 3) {
+        await reader.cancel();
+        throw new Error("Provider response exceeds budget");
+      }
+      chunksRead.push(Buffer.from(value));
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const text = Buffer.concat(chunksRead, totalBytes).toString("utf8");
   const body = JSON.parse(text);
   if (body.status !== "completed")
     throw new Error("Provider response incomplete");

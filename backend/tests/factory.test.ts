@@ -53,3 +53,21 @@ it('rejects oversized request bodies before reaching a database operation', asyn
   expect(response.body).toEqual({ detail: 'Request body too large.' });
   expect(create).not.toHaveBeenCalled();
 });
+
+it.each([
+  { method: 'get', path: '/api/todos', delegate: 'findMany', body: undefined },
+  { method: 'get', path: '/api/todos/1', delegate: 'findUnique', body: undefined },
+  { method: 'post', path: '/api/todos', delegate: 'create', body: { title: 'Valid task' } },
+  { method: 'patch', path: '/api/todos/1', delegate: 'updateManyAndReturn', body: { completed: true } },
+  { method: 'delete', path: '/api/todos/1', delegate: 'deleteMany', body: undefined },
+] as const)('returns a generic error when $method $path rejects, without leaking database details', async ({ method, path, delegate, body }) => {
+  const db = database();
+  const failure = new Error('private SQL credentials and internal query text');
+  vi.spyOn(db.todo, delegate).mockRejectedValue(failure);
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+  const response = await request(createApp(db))[method](path).send(body);
+  expect(response.status).toBe(500);
+  expect(response.body).toEqual({ detail: 'Internal Server Error' });
+  expect(response.text).not.toContain(failure.message);
+  expect(log).toHaveBeenCalledWith(failure);
+});

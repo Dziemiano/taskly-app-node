@@ -183,3 +183,15 @@ Dependencies: phases 2–7. Owner: documentation specialist and coordinator.
 - [x] 8.12 Deliver implementation PR #1, feature PR #2, local bundle and verified CI evidence; explain remaining default-branch activation and optional live-provider setup. No automatic merge or email.
 
 Exit: reviewable implementation and truthful demonstration evidence; task is not declared fully deployed if live prerequisites remain unavailable.
+
+## Phase 9 — Full independent audit and hardening (2026-11-26)
+
+- [x] 9.1 Recheck external assignment against repository deliverables; audit implementation independently in security, reliability, coverage and dependency specialties.
+- [x] 9.2 Reproduce excluded-proposal false verification, setup mutation, missing repair context, snapshot corruption and Git attribute conversion; add mechanical guards and regression tests.
+- [x] 9.3 Audit publication races, cross-run artifacts, initial API failure paths, bounded response/report handling and retries; add coordinator-owned fixes and negative tests.
+- [x] 9.4 Add meaningful application tests without changing source/coverage exclusions: frontend 68 / backend 91; measure frontend line coverage 99.33% and backend 97.24%.
+- [x] 9.5 Patch known vulnerable dependencies; actual npm audit reports zero frontend/backend vulnerabilities. Verify both production builds, Storybook build, Prisma generation and typechecks.
+- [x] 9.6 Add real Docker audit probes for excluded tests and setup mutation to the existing keyless demo; unit contracts verify required rejection reasons.
+- [x] 9.7 Local integrated automation suite 63/63, actionlint and diff checks pass. Independent review and reports retained.
+- [ ] 9.8 Publish all audited changes and run clean GitHub CI on implementation and updated demonstration branches. Require passing positive repair and both negative Docker probes; record exact run/artifact URLs.
+- [ ] 9.9 Update SOLUTION.md, audit report and bundle with actual final evidence and remaining activation/live-model boundaries.
